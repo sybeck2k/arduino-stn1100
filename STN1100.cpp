@@ -616,12 +616,11 @@ byte Stn1100::runCommand(const char *cmd, char *data, unsigned int dataLength)
     flush();
     STN1100_PORT.print(cmd);
     STN1100_PORT.print('\r');
-    delay(50);
+
     unsigned long timeOut;
     int counter;
     bool found;
     byte streamReadResponse;
-
     
     // Start reading the data right away and don't stop 
     // until either the requested number of bytes has 
@@ -630,7 +629,7 @@ byte Stn1100::runCommand(const char *cmd, char *data, unsigned int dataLength)
     //
     //counter=0;
     //timeOut=millis()+STN1100_TIMEOUT;
-    found=false;
+    //found=false;
     streamReadResponse = STN1100_PORT.readBytesUntil('>', data, dataLength);
 
     /*while (!found && counter<( dataLength ) && millis()<timeOut)
