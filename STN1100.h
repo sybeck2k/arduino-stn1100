@@ -218,6 +218,7 @@ class Stn1100
          */
         byte getVersion(String &rev);
 
+        byte reset(String &response);
 
         /**
          *  Issues the AT IGN command to the STN1100 device.  This command provides
@@ -262,7 +263,7 @@ class Stn1100
          * @param[out]  temp    Signed integer value is set to the coolant temperature.
          * - Minimum: -40
          * - Maximum Value: 215
-         * - Units: Â°C
+         * - Units: °C
          */
         byte coolantTemperature(int &temp);
 
@@ -362,7 +363,7 @@ class Stn1100
          * @param[out]  advance Integer set to the timing advance value.
          * - Minimum Value: -64
          * - Maximum Value: 63.5
-         * - Units: Â° from TDC
+         * - Units: ° from TDC
          */
         byte timingAdvance(int &advance);
 
@@ -373,7 +374,7 @@ class Stn1100
          * @param[out]  temperature Integer set to the intake air temperature
          * - Minimum Value: -40
          * - Maximum Value: 215
-         * - Â°C
+         * - °C
          */
         byte intakeAirTemperature(int &temperature);
 
@@ -384,7 +385,7 @@ class Stn1100
          * @param[out]  rate    Integer value set to the flow rate.
          * - Minimum Value: -40
          * - Maximum Value: 215
-         * - Â°C
+         * - °C
          */
         byte MAFAirFlowRate(unsigned int &rate);
 
@@ -398,6 +399,18 @@ class Stn1100
          * - %
          */
         byte throttlePosition(byte &position);
+
+
+        /**
+         * Gets the current steering wheel angle. Reads PID 223201 from the OBD interface
+         * and sets position to the value returned after conversion.
+         * @param[out] position Byte containing steering angle position.
+         * - Minimum Value: -800
+         * - Maximum Value: 800
+         * - °C
+         */
+        byte steeringWheelAngle(int  &angle);
+
         byte o2SensorBank1Sensor1(byte &voltage, byte &trim);
         byte o2SensorBank1Sensor2(byte &voltage, byte &trim);
         byte o2SensorBank1Sensor3(byte &voltage, byte &trim);
@@ -451,12 +464,12 @@ class Stn1100
         byte acceleratorPedalPositionE(byte &position);
         byte acceleratorPedalPositionF(byte &position);
         byte commandedThrottleActuator(byte &position);
+        byte runCommand(const char *cmd, char *data, unsigned int dataLength);
     private:
         byte o2WRVoltage(const char *sensor, unsigned int &equivRatio, unsigned int &voltage);
         byte o2WRCurrent(const char *sensor, unsigned int &equivRatio, int &current);
         byte catTemperature(const char *sensor, int &temperature);
-        byte getBytes( const char *mode, const char *chkMode, const char *pid, byte *values, unsigned int numValues);
-        byte runCommand(const char *cmd, char *data, unsigned int dataLength);
+        byte getBytes( const char *mode, const char *pid, byte *values, unsigned int numValues);
         bool getBit(byte b, byte p);
         byte getFuelTrim(const char *pid, int &percent);
         void flush();

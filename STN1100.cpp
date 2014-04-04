@@ -27,15 +27,15 @@ byte Stn1100::begin(){
     STN1100_PORT.begin(STN1100_BAUD_RATE);
     STN1100_PORT.setTimeout(STN1100_TIMEOUT);
     char data[20];
-    // try to switch baud rate
-    runCommand("AT E0",data,20);
-    return runCommand("AT SP 0",data,20);
+    runCommand("AT E0",data,20); //no echo 
+    runCommand("AT S0",data,20); //no spaces
+    return runCommand("AT SP 0",data,20); //auto protocol search
 }
 
 byte Stn1100::engineLoad(byte &load){
     byte status;
     byte values[1];
-    status=getBytes("01","41","04",values,1);
+    status=getBytes("01","04",values,1);
     if (status != STN1100_SUCCESS){
         return status;
     }
@@ -46,7 +46,7 @@ byte Stn1100::engineLoad(byte &load){
 byte Stn1100::coolantTemperature(int &temp){
     byte status;
     byte values[1];
-    status=getBytes("01","41","05",values,1);
+    status=getBytes("01","05",values,1);
     if (status != STN1100_SUCCESS){
         return status;
     }
@@ -57,7 +57,7 @@ byte Stn1100::coolantTemperature(int &temp){
 byte Stn1100::getFuelTrim(const char *pid, int &percent){
     byte status;
     byte values[1];
-    status=getBytes("01","41",pid,values,1);
+    status=getBytes("01",pid,values,1);
     if (status != STN1100_SUCCESS){
         return status;
     }
@@ -84,7 +84,7 @@ byte Stn1100::fuelPressure(int &pressure){
     char mode[]="01";
     char chkMode[]="41";
     char pid[]="0A";
-    status=getBytes("01","41","0A",values,1);
+    status=getBytes("01","0A",values,1);
     if (status != STN1100_SUCCESS){
         return status;
     }
@@ -95,7 +95,7 @@ byte Stn1100::fuelPressure(int &pressure){
 byte Stn1100::intakeManifoldAbsolutePressure(byte &pressure){
     byte status;
     byte values[1];
-    status=getBytes("01","41","0B",values,1);
+    status=getBytes("01","0B",values,1);
     if (status != STN1100_SUCCESS){
         return status;
     }
@@ -106,7 +106,7 @@ byte Stn1100::intakeManifoldAbsolutePressure(byte &pressure){
 byte Stn1100::engineRPM(int &rpm){
     byte status;
     byte values[2];
-    status=getBytes("01","41","0C",values,2);
+    status=getBytes("01","0C",values,2);
     if (status != STN1100_SUCCESS){
         return status;
     }
@@ -117,7 +117,7 @@ byte Stn1100::engineRPM(int &rpm){
 byte Stn1100::vehicleSpeed(byte &speed){
     byte status;
     byte values[1];
-    status=getBytes("01","41","0D",values,1);
+    status=getBytes("01","0D",values,1);
     if (status != STN1100_SUCCESS){
         return status;
     }
@@ -127,7 +127,7 @@ byte Stn1100::vehicleSpeed(byte &speed){
 byte Stn1100::timingAdvance(int &advance){
     byte status;
     byte values[1];
-    status=getBytes("01","41","0E",values,1);
+    status=getBytes("01","0E",values,1);
     if (status != STN1100_SUCCESS){
         return status;
     }
@@ -138,7 +138,7 @@ byte Stn1100::timingAdvance(int &advance){
 byte Stn1100::intakeAirTemperature(int &temperature){
     byte status;
     byte values[1];
-    status=getBytes("01","41","0F",values,1);
+    status=getBytes("01","0F",values,1);
     if (status != STN1100_SUCCESS){
         return status;
     }
@@ -149,7 +149,7 @@ byte Stn1100::intakeAirTemperature(int &temperature){
 byte Stn1100::MAFAirFlowRate(unsigned int &rate){
     byte status;
     byte values[2];
-    status=getBytes("01","41","10",values,2);
+    status=getBytes("01","10",values,2);
     if (status != STN1100_SUCCESS){
         return status;
     }
@@ -160,11 +160,23 @@ byte Stn1100::MAFAirFlowRate(unsigned int &rate){
 byte Stn1100::throttlePosition(byte &position){
     byte status;
     byte values[1];
-    status=getBytes("01","41","11",values,1);
+    status=getBytes("01","11",values,1);
     if (status != STN1100_SUCCESS){
         return status;
     }
     position=(values[0]*100)/255;
+    return STN1100_SUCCESS;
+}
+
+byte Stn1100::steeringWheelAngle(int &angle){
+    byte status;
+    byte values[1];
+    status=getBytes("22","3201",values,2);
+    if (status != STN1100_SUCCESS){
+        return status;
+    }
+    angle = ((256 * values[0]) + values[1]) - 1638;
+    // ..or ?
     return STN1100_SUCCESS;
 }
 
@@ -196,7 +208,7 @@ byte Stn1100::o2SensorBank2Sensor4(byte &voltage, byte &trim){
 byte Stn1100::o2sensorRead(const char *bank, byte &voltage, byte &trim){
     byte status;
     byte values[2];
-    status=getBytes("01","41",bank,values,2);
+    status=getBytes("01",bank,values,2);
     if (status != STN1100_SUCCESS){
         return status;
     }
@@ -209,7 +221,7 @@ byte Stn1100::o2sensorRead(const char *bank, byte &voltage, byte &trim){
 byte Stn1100::auxiliaryInputStatus(bool &auxStatus){
     byte status;
     byte values[1];
-    status=getBytes("01","41","1E",values,1);
+    status=getBytes("01","1E",values,1);
     if (status != STN1100_SUCCESS){
         return status;
     }
@@ -220,7 +232,7 @@ byte Stn1100::auxiliaryInputStatus(bool &auxStatus){
 byte Stn1100::engineRunTime(unsigned int &runTime){
     byte status;
     byte values[2];
-    status=getBytes("01","41","1F",values,2);
+    status=getBytes("01","1F",values,2);
     if (status != STN1100_SUCCESS){
         return status;
     }
@@ -231,7 +243,7 @@ byte Stn1100::engineRunTime(unsigned int &runTime){
 byte Stn1100::distanceMIL(unsigned int &distance){
     byte status;
     byte values[2];
-    status=getBytes("01","41","21",values,2);
+    status=getBytes("01","21",values,2);
     if (status != STN1100_SUCCESS){
         return status;
     }
@@ -242,7 +254,7 @@ byte Stn1100::distanceMIL(unsigned int &distance){
 byte Stn1100::relativeFuelRailPressure(unsigned int &pressure){
     byte status;
     byte values[2];
-    status=getBytes("01","41","22",values,2);
+    status=getBytes("01","22",values,2);
     if (status != STN1100_SUCCESS){
         return status;
     }
@@ -253,7 +265,7 @@ byte Stn1100::relativeFuelRailPressure(unsigned int &pressure){
 byte Stn1100::absoluteFuelRailPressure(unsigned int &pressure){
     byte status;
     byte values[2];
-    status=getBytes("01","41","23",values,2);
+    status=getBytes("01","23",values,2);
     if (status != STN1100_SUCCESS){
         return status;
     }
@@ -289,7 +301,7 @@ byte Stn1100::o2S8WRVoltage(unsigned int &equivRatio, unsigned int &voltage){
 byte Stn1100::o2WRVoltage(const char *sensor, unsigned int &equivRatio, unsigned int &voltage){
     byte status;
     byte values[4];
-    status=getBytes("01","41",sensor,values,4);
+    status=getBytes("01",sensor,values,4);
     if (status != STN1100_SUCCESS){
         return status;
     }
@@ -301,7 +313,7 @@ byte Stn1100::o2WRVoltage(const char *sensor, unsigned int &equivRatio, unsigned
 byte Stn1100::commandedEGR(byte &egr){
     byte status;
     byte values[1];
-    status=getBytes("01","41","2C",values,1);
+    status=getBytes("01","2C",values,1);
     if (status != STN1100_SUCCESS){
         return status;
     }
@@ -312,7 +324,7 @@ byte Stn1100::commandedEGR(byte &egr){
 byte Stn1100::EGRError(int &error){
     byte status;
     byte values[1];
-    status=getBytes("01","41","2D",values,1);
+    status=getBytes("01","2D",values,1);
     if (status != STN1100_SUCCESS){
         return status;
     }
@@ -323,7 +335,7 @@ byte Stn1100::EGRError(int &error){
 byte Stn1100::commandedEvaporativePurge(byte &purge){
     byte status;
     byte values[1];
-    status=getBytes("01","41","2E",values,1);
+    status=getBytes("01","2E",values,1);
     if (status != STN1100_SUCCESS){
         return status;
     }
@@ -334,7 +346,7 @@ byte Stn1100::commandedEvaporativePurge(byte &purge){
 byte Stn1100::fuelLevel(byte &level){
     byte status;
     byte values[1];
-    status=getBytes("01","41","2F",values,1);
+    status=getBytes("01","2F",values,1);
     if (status != STN1100_SUCCESS){
         return status;
     }
@@ -345,7 +357,7 @@ byte Stn1100::fuelLevel(byte &level){
 byte Stn1100::warmUpsSinceLastCleared(byte &warmUps){
     byte status;
     byte values[1];
-    status=getBytes("01","41","30",values,1);
+    status=getBytes("01","30",values,1);
     if (status != STN1100_SUCCESS){
         return status;
     }
@@ -356,7 +368,7 @@ byte Stn1100::warmUpsSinceLastCleared(byte &warmUps){
 byte Stn1100::distanceSinceLastCleared(unsigned int &distance){
     byte status;
     byte values[2];
-    status=getBytes("01","41","31",values,2);
+    status=getBytes("01","31",values,2);
     if (status != STN1100_SUCCESS){
         return status;
     }
@@ -367,7 +379,7 @@ byte Stn1100::distanceSinceLastCleared(unsigned int &distance){
 byte Stn1100::evapPressure(int &pressure){
     byte status;
     byte values[2];
-    status=getBytes("01","41","32",values,2);
+    status=getBytes("01","32",values,2);
     if (status != STN1100_SUCCESS){
         return status;
     }
@@ -378,7 +390,7 @@ byte Stn1100::evapPressure(int &pressure){
 byte Stn1100::barometricPressure(byte  &pressure){
     byte status;
     byte values[1];
-    status=getBytes("01","41","33",values,1);
+    status=getBytes("01","33",values,1);
     if (status != STN1100_SUCCESS){
         return status;
     }
@@ -390,7 +402,7 @@ byte Stn1100::barometricPressure(byte  &pressure){
 byte Stn1100::o2WRCurrent(const char *sensor, unsigned int &equivRatio, int &current){
     byte status;
     byte values[4];
-    status=getBytes("01","41",sensor,values,4);
+    status=getBytes("01",sensor,values,4);
     if (status != STN1100_SUCCESS){
         return status;
     }
@@ -444,7 +456,7 @@ byte Stn1100::catalystTemperatureBank2Sensor2(int &temperature)
 byte Stn1100::catTemperature(const char *sensor, int &temperature){
     byte status;
     byte values[2];
-    status=getBytes("01","41",sensor,values,2);
+    status=getBytes("01",sensor,values,2);
     if (status != STN1100_SUCCESS){
         return status;
     }
@@ -455,7 +467,7 @@ byte Stn1100::catTemperature(const char *sensor, int &temperature){
 byte Stn1100::controlModuleVoltage(unsigned int &voltage){
     byte status;
     byte values[2];
-    status=getBytes("01","41","42",values,2);
+    status=getBytes("01","42",values,2);
     if (status != STN1100_SUCCESS){
         return status;
     }
@@ -466,7 +478,7 @@ byte Stn1100::controlModuleVoltage(unsigned int &voltage){
 byte Stn1100::absoluteLoadValue(unsigned int &load){
     byte status;
     byte values[2];
-    status=getBytes("01","41","43",values,2);
+    status=getBytes("01","43",values,2);
     if (status != STN1100_SUCCESS){
         return status;
     }
@@ -477,7 +489,7 @@ byte Stn1100::absoluteLoadValue(unsigned int &load){
 byte Stn1100::commandEquivalenceRatio(float &ratio){
     byte status;
     byte values[2];
-    status=getBytes("01","41","44",values,2);
+    status=getBytes("01","44",values,2);
     if (status != STN1100_SUCCESS){
         return status;
     }
@@ -489,7 +501,7 @@ byte Stn1100::commandEquivalenceRatio(float &ratio){
 byte Stn1100::relativeThrottlePosition(byte &position){
     byte status;
     byte values[1];
-    status=getBytes("01","41","45",values,1);
+    status=getBytes("01","45",values,1);
     if (status != STN1100_SUCCESS){
         return status;
     }
@@ -500,7 +512,7 @@ byte Stn1100::relativeThrottlePosition(byte &position){
 byte Stn1100::ambientAirTemperature(int &temperature){
     byte status;
     byte values[1];
-    status=getBytes("01","41","46",values,1);
+    status=getBytes("01","46",values,1);
     if (status != STN1100_SUCCESS){
         return status;
     }
@@ -511,7 +523,7 @@ byte Stn1100::ambientAirTemperature(int &temperature){
 byte Stn1100::absoluteThrottlePositionB(byte &position){
     byte status;
     byte values[1];
-    status=getBytes("01","41","47",values,1);
+    status=getBytes("01","47",values,1);
     if (status != STN1100_SUCCESS){
         return status;
     }
@@ -521,7 +533,7 @@ byte Stn1100::absoluteThrottlePositionB(byte &position){
 byte Stn1100::absoluteThrottlePositionC(byte &position){
     byte status;
     byte values[1];
-    status=getBytes("01","41","48",values,1);
+    status=getBytes("01","48",values,1);
     if (status != STN1100_SUCCESS){
         return status;
     }
@@ -531,7 +543,7 @@ byte Stn1100::absoluteThrottlePositionC(byte &position){
 byte Stn1100::acceleratorPedalPositionD(byte &position){
     byte status;
     byte values[1];
-    status=getBytes("01","41","49",values,1);
+    status=getBytes("01","49",values,1);
     if (status != STN1100_SUCCESS){
         return status;
     }
@@ -541,7 +553,7 @@ byte Stn1100::acceleratorPedalPositionD(byte &position){
 byte Stn1100::acceleratorPedalPositionE(byte &position){
     byte status;
     byte values[1];
-    status=getBytes("01","41","4A",values,1);
+    status=getBytes("01","4A",values,1);
     if (status != STN1100_SUCCESS){
         return status;
     }
@@ -551,7 +563,7 @@ byte Stn1100::acceleratorPedalPositionE(byte &position){
 byte Stn1100::acceleratorPedalPositionF(byte &position){
     byte status;
     byte values[1];
-    status=getBytes("01","41","4B",values,1);
+    status=getBytes("01","4B",values,1);
     if (status != STN1100_SUCCESS){
         return status;
     }
@@ -561,7 +573,7 @@ byte Stn1100::acceleratorPedalPositionF(byte &position){
 byte Stn1100::commandedThrottleActuator(byte &position){
     byte status;
     byte values[1];
-    status=getBytes("01","41","4C",values,1);
+    status=getBytes("01","4C",values,1);
     if (status != STN1100_SUCCESS){
         return status;
     }
@@ -570,39 +582,49 @@ byte Stn1100::commandedThrottleActuator(byte &position){
 }
 
 
-byte Stn1100::getBytes( const char *mode, const char *chkMode, const char *pid, byte *values, unsigned int numValues){
+byte Stn1100::getBytes( const char *mode, const char *pid, byte *values, unsigned int numValues){
     char data[64];
     byte status;
     char hexVal[]="0x00";
-    char cmd[5];
-    cmd[0]=mode[0];
+    int i,j,t;
+    int pid_length=strlen(pid);  
+    char cmd[pid_length+3];      // the length of command is pid + 2 (mode) + 1 (null)
+
+    cmd[0]=mode[0];              // we assume mode is always 2 chars
     cmd[1]=mode[1];
-    //cmd[2]=' ';
-    cmd[2]=pid[0];
-    cmd[3]=pid[1];
-    cmd[4]='\0';
+    for (int i=0; i<pid_length; i++) {
+        cmd[i+2] = pid[i];
+    }
+    cmd[pid_length+2]='\0';
 
     status=runCommand(cmd,data,64);
-    if ( status != STN1100_SUCCESS )
-    {
+    if ( status != STN1100_SUCCESS ) {
         return status;
     };
-    
+
+    // the response is valid if the first [pid_length] bytes length are the same incremented by 4 on the left, followed by mode
+    for (j=0; j<pid_length;j++) {
+        if ((j==0 && data[j] -  pid[j] != 4) && data[j] != pid[j]) {
+            return STN1100_GARBAGE;
+        }
+    }
+
+    /*
     // Check the mode returned was the one we sent
     if ( data[0]!=chkMode[0] 
       or data[1]!=chkMode[1]
       or data[3]!=pid[0]
       or data[4]!=pid[1] ){
         return STN1100_GARBAGE;
-    }
+    }*/
     
-    // For each byte expected, package it up
-    int i=0;
-    for (int i=0; i<numValues; i++){
-        hexVal[2]=data[6+(3*i)];
-        hexVal[3]=data[7+(3*i)];
-        values[i]=strtol(hexVal,NULL,16);
+    // For each byte expected after the headers, pack it up
+    for (t=0; t<numValues; t++){
+        hexVal[2]=data[pid_length + 2 + (2*t)]; // i=0 > data[6], i=1 > data[8]
+        hexVal[3]=data[pid_length + 3 + (2*t)]; // i=0 > data[7], i=1 > data[9]
+        values[t]=strtol(hexVal,NULL,16);
     }
+
     return STN1100_SUCCESS;
 }
 
@@ -627,12 +649,11 @@ byte Stn1100::runCommand(const char *cmd, char *data, unsigned int dataLength)
     // been read or the timeout is reached, or the >
     // has been returned.
     //
-    //counter=0;
-    //timeOut=millis()+STN1100_TIMEOUT;
-    //found=false;
-    streamReadResponse = STN1100_PORT.readBytesUntil('>', data, dataLength);
-
-    /*while (!found && counter<( dataLength ) && millis()<timeOut)
+    counter=0;
+    timeOut=millis()+STN1100_TIMEOUT;
+    found=false;
+    //streamReadResponse = STN1100_PORT.readBytesUntil('>', data, dataLength);
+    while (!found && counter<( dataLength ) && millis()<timeOut)
     {
         if ( STN1100_PORT.available() ){
             data[counter]=STN1100_PORT.read();
@@ -654,17 +675,17 @@ byte Stn1100::runCommand(const char *cmd, char *data, unsigned int dataLength)
         STN1100_PORT.print("XXXXXXXXX\r\r\r");
         delay(300);
         return STN1100_BUFFER_OVERFLOW;
-    }*/
+    }
     
     // If not found, and there is still buffer space, then raise no response error.
-    /*if (!found && counter<dataLength){
+    if (!found && counter<dataLength){
         // Send a character, this should cancel any operation on the STN1100 device
         // so that it doesnt spuriously inject a response during the next 
         // command
         STN1100_PORT.print("XXXXXXXXX\r\r\r");
         delay(300);
         return STN1100_NO_RESPONSE;
-    }*/
+    }
 
     char *match;
     match=strstr(data,"UNABLE TO CONNECT");
@@ -697,6 +718,16 @@ byte Stn1100::getVersion(String &rev)
     char cmd[]="ATI";
     status=runCommand(cmd,data,20);
     rev=String(data);
+    return status;
+}
+
+byte Stn1100::reset(String &response)
+{
+    char data[20];
+    byte status;
+    char cmd[]="ATZ";
+    status=runCommand(cmd,data,20);
+    response=String(data);
     return status;
 }
 
