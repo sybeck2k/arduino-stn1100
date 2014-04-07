@@ -175,8 +175,7 @@ byte Stn1100::steeringWheelAngle(int &angle){
     if (status != STN1100_SUCCESS){
         return status;
     }
-    angle = ((256 * values[0]) + values[1]) - 1638;
-    // ..or ?
+    angle = (6.25 * values[0]) - 800;
     return STN1100_SUCCESS;
 }
 
@@ -602,9 +601,13 @@ byte Stn1100::getBytes( const char *mode, const char *pid, byte *values, unsigne
         return status;
     };
 
-    // the response is valid if the first [pid_length] bytes length are the same incremented by 4 on the left, followed by mode
+    //check the first 2 bytes, by validating the mode response
+    if (data[0] - mode[0] != 4 || data[1] != mode[1]) {
+        return STN1100_GARBAGE;
+    }
+
     for (j=0; j<pid_length;j++) {
-        if ((j==0 && data[j] -  pid[j] != 4) && data[j] != pid[j]) {
+        if (data[j+2] != pid[j]) {
             return STN1100_GARBAGE;
         }
     }
