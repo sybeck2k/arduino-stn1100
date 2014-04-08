@@ -25,11 +25,29 @@
 byte Stn1100::begin(){
     byte status;
     STN1100_PORT.begin(STN1100_BAUD_RATE);
-    STN1100_PORT.setTimeout(STN1100_TIMEOUT);
-    char data[20];
-    runCommand("AT E0",data,20); //no echo 
-    runCommand("AT S0",data,20); //no spaces
-    return runCommand("AT SP 0",data,20); //auto protocol search
+    Serial1.flush();
+    this->flush();
+    int counter = 0;
+    //char data[3] = "  ";
+    char* data = (char*) malloc( 4 * sizeof(char) );
+    memset(data, 0, 4);
+    while (strcmp(data, "OK") != 0){
+        runCommand("ATE0",data,3); //no echo 
+        counter++;
+    }
+    memset(data, 0, 4);
+    while (strcmp(data, "OK") != 0){
+        runCommand("ATS0",data,3); //no echo 
+        counter++;
+    }
+    memset(data, 0, 4);
+    while (strcmp(data, "OK") != 0){
+        runCommand("ATSP0",data,3); //no echo 
+        counter++;
+    }
+
+    //runCommand("ATS0",data,2); //no spaces
+    return runCommand("ATSP0",data,3); //auto protocol search
 }
 
 byte Stn1100::engineLoad(byte &load){
@@ -638,9 +656,21 @@ byte Stn1100::runCommand(const char *cmd, char *data, unsigned int dataLength)
     // Flush any leftover data from the last command.
     
     // Send the specified command to the controller.
-    flush();
-    STN1100_PORT.print(cmd);
-    STN1100_PORT.print('\r');
+    //flush();
+    int pointer_b = 0;
+
+    this->flush();
+    //while(cmd[pointer_b]!=NUL) {
+    STN1100_PORT.write((const uint8_t*) cmd,strlen(cmd));
+    
+      //STN1100_PORT.write(*cmd++);
+    STN1100_PORT.write(CR);
+    Serial1.flush();
+    //STN1100_PORT.print(cmd);
+    //STN1100_PORT.print('\r');
+
+    //Serial.print("Sending: ");
+    //Serial.println(cmd);
 
     unsigned long timeOut;
     int counter;
@@ -655,8 +685,26 @@ byte Stn1100::runCommand(const char *cmd, char *data, unsigned int dataLength)
     counter=0;
     timeOut=millis()+STN1100_TIMEOUT;
     found=false;
+    int b;
+    byte i=0;
+
+    while((b=STN1100_PORT.read())!=PROMPT && i<dataLength) {
+      if(b!=-1 && b>=' ')
+        data[i++]=b;
+    }
+
+    if(i!=dataLength) {
+      data[i]=NUL;  // replace CR by NUL.
+      //Serial.print("Response: ");
+      //Serial.println(data);
+    } else {
+        STN1100_PORT.print("XXXXXXXXX\r\r\r");
+        delay(300);
+        return STN1100_BUFFER_OVERFLOW;
+    }
+
     //streamReadResponse = STN1100_PORT.readBytesUntil('>', data, dataLength);
-    while (!found && counter<( dataLength ) && millis()<timeOut)
+    /*while (!found && counter<( dataLength ) && millis()<timeOut)
     {
         if ( STN1100_PORT.available() ){
             data[counter]=STN1100_PORT.read();
@@ -680,6 +728,7 @@ byte Stn1100::runCommand(const char *cmd, char *data, unsigned int dataLength)
         return STN1100_BUFFER_OVERFLOW;
     }
     
+    /*
     // If not found, and there is still buffer space, then raise no response error.
     if (!found && counter<dataLength){
         // Send a character, this should cancel any operation on the STN1100 device
@@ -688,9 +737,10 @@ byte Stn1100::runCommand(const char *cmd, char *data, unsigned int dataLength)
         STN1100_PORT.print("XXXXXXXXX\r\r\r");
         delay(300);
         return STN1100_NO_RESPONSE;
-    }
+    }*/
 
     char *match;
+
     match=strstr(data,"UNABLE TO CONNECT");
     if (match != NULL){
         return STN1100_UNABLE_TO_CONNECT;
@@ -699,10 +749,11 @@ byte Stn1100::runCommand(const char *cmd, char *data, unsigned int dataLength)
     if (match != NULL){
         return STN1100_NO_DATA;
     }
+
     if (strncmp(data,"SEARCHING...",12)==0)
     {
         // Remove searching...
-        byte i=12;
+        i=12;
         while (data[i]!='\0'){
             data[i-12]=data[i];
             i++;

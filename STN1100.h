@@ -24,6 +24,19 @@
 #define STN1100_h
 #include "Arduino.h"
 
+#ifndef NUL
+    #define NUL     '\0'
+#endif
+#ifndef CR
+    #define CR      '\r'  // carriage return = 0x0d = 13
+#endif
+#ifndef PROMPT
+    #define PROMPT  '>'
+#endif
+#ifndef DATA
+    #define DATA    1  // data with no cr/prompt
+#endif
+
 /**
  * The timeout in milliseconds to wait for a response from the ELM device.  
  * If this timeout is reached before a prompt is returned then functions 
